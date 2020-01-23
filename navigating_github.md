@@ -10,3 +10,15 @@ https://github.com/USF-Psych-DataSci
 Data science homepage
 https://github.com/USF-Psych-DataSci
 
+## Testing *_Headings and Hyperlinks_*
+
+[GitHub](https://github.com)
+
+## Testing *_bullet points_*
+
+* Item 1
+  * Item 1a
+* Item 2
+  * Item 2a
+  
+  
