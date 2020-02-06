@@ -151,15 +151,10 @@ gapminder %>%
 We're starting with the same plot as above, but instead of the points + boxplot, try a ridge plot instead using `ggridges::geom_density_ridges()`, and adjust the `bandwidth`.
 
 ```{r, fig.width = 5, fig.height = 5}
-gapminder +
-	filter(continent == "Americas") + 
+gapminder %>%
+	filter(continent == "Americas") %>% 
 	ggplot(aes(lifeExp, country)) + 
-	ggridges::geom_density_ridges() +
-gapminder + 
-  filter(continent == "Americas") + 
-  mutate(country = fct_reorder(country, lifeExp, median)) +
-  ggplot(aes(lifeExp, country)) + 
-  ggridges::geom_density_ridges()
+	ggridges::geom_density_ridges() 
 ```
 
 ## Exercise 6: Bar plot madness
