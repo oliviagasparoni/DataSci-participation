@@ -94,19 +94,15 @@ ggplot(gapminder, aes(gdpPercap, lifeExp)) +
 ```r
 gapminder %>%  
   filter(continent != "Oceania") %>% 
-  ggplot(aes(gdpPercap, lifeExp)) +
-  facet_wrap(~ continent) +
-  geom_point(alpha = 0.2) +
-  scale_x_log10(labels = scales::comma_format()) +
-  scale_size_area() +
+  ggplot(aes(gdpPercap, lifeExp, size = pop, fill = gdpPercap)) +
+  facet_grid( ~ continent) +
+  geom_point(alpha = 0.2, shape = 21, color = "black") +
+  scale_size(range = c(1,6), name = "Population") +
+  scale_x_log10(labels = scales::comma_format()) 
 ```
 
-```
-## Error: <text>:8:0: unexpected end of input
-## 6:   scale_x_log10(labels = scales::comma_format()) +
-## 7:   scale_size_area() +
-##   ^
-```
+![](second-in-class-worksheet-1-30_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+
 
 A list of shapes can be found [at the bottom of the `scale_shape` documentation](https://ggplot2.tidyverse.org/reference/scale_shape.html).
 
@@ -117,9 +113,8 @@ Instead of alpha transparency, suppose you're wanting to fix the overplotting is
 
 ```r
 ggplot(gapminder) +
-  geom_point(aes(gdpPercap, lifeExp, size = 0.1)) +
-  scale_x_log10(labels = scales::dollar_format()) +
-    scale_size_continuous(range = c(0.05, 0.05))
+  geom_point(aes(gdpPercap, lifeExp, shape = ".")) +
+  scale_x_log10(labels = scales::dollar_format()) 
 ```
 
 ![](second-in-class-worksheet-1-30_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
@@ -143,13 +138,12 @@ tribble(
   4, 0.4, 0.5
 ) %>% 
   ggplot(aes(x, y)) + 
-  geom_line() +
-  arrow = arrow() 
+  geom_path(arrow = arrow()) +
+  geom_text(label = "time")
 ```
 
-```
-## Error in tribble(~time, ~x, ~y, 1, 0.3, 0.3, 2, 0.8, 0.7, 3, 0.5, 0.9, : could not find function "+<-"
-```
+![](second-in-class-worksheet-1-30_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+
 
 ## Exercise 5: Life expectancies in Africa
 
@@ -164,9 +158,9 @@ There is also the problem of overlapping text in the x-axis labels. How could we
 gapminder %>% 
   filter(continent == "Americas") %>% 
   ggplot(aes(country, lifeExp)) + 
-  geom_point() +
-  geom_boxplot() +
-  scale_x_discrete()
+  geom_point(alpha = 0.5) +
+  scale_x_discrete() +
+  theme(axis.text.x = element_text(angle = 65, hjust = 1))
 ```
 
 ![](second-in-class-worksheet-1-30_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
@@ -177,11 +171,14 @@ We're starting with the same plot as above, but instead of the points + boxplot,
 
 
 ```r
-gapminder %>% 
-  filter(continent == "Americas") %>% 
-  ggplot(aes(country, lifeExp)) + 
-  geom_point() +
-  geom_boxplot()
+gapminder %>%
+	filter(continent == "Americas") %>% 
+	ggplot(aes(lifeExp, country)) + 
+	ggridges::geom_density_ridges() 
+```
+
+```
+## Picking joint bandwidth of 3.63
 ```
 
 ![](second-in-class-worksheet-1-30_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
@@ -200,9 +197,11 @@ gapminder %>%
 
 ```r
 mtcars %>% 
-  mutate(transmission = if_else(am == 0, "automatic", "manual")) %>% 
-  ggplot(aes(cyl)) +
-  geom_bar(aes(color = transmission))
+  mutate(Transmission = if_else(am == 0, "automatic", "manual")) %>% 
+  ggplot(aes(cyl, ..prop..)) +
+  geom_bar(aes(fill = Transmission), position = "dodge") +
+  ylab("proportion") +
+  scale_x_continuous(breaks = c(4, 6, 8))
 ```
 
 ![](second-in-class-worksheet-1-30_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
@@ -232,11 +231,7 @@ Fix the following bar plot so that it shows these counts.
 
 ```r
 ggplot(hair, aes(Hair, n)) +
-  geom_bar()
-```
-
-```
-## Error: stat_count() must not be used with a y aesthetic.
+  geom_col()
 ```
 
 ![](second-in-class-worksheet-1-30_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
@@ -279,7 +274,7 @@ _Hint:_ What's the title of this exercise?
 
 ```r
 ggplot(hair_eye, aes(Hair, Eye)) +
-  geom_point(aes(colour = n))
+  geom_tile(aes(fill = n))
 ```
 
 ![](second-in-class-worksheet-1-30_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
@@ -293,12 +288,78 @@ If you'd like some practice, give these exercises a try
 
 __Exercise 1__: Make a plot of `year` (x) vs `lifeExp` (y), with points coloured by continent. Then, to that same plot, fit a straight regression line to each continent, without the error bars. If you can, try piping the data frame into the `ggplot()` function.
 
-__Exercise 2__: Repeat Exercise 1, but switch the _regression line_ and _geom\_point_ layers. How is this plot different from that of Exercise 1?
+
+```r
+gapminder %>% 
+  ggplot(aes(year, lifeExp, colour = continent)) +
+  geom_jitter(width = 0.75, alpha = 0.1) +
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+![](second-in-class-worksheet-1-30_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
+__Exercise 2__: Repeat Exercise 1, but switch the _regression line_ and _geom\_point_ layers. How is this plot different from that of Exercise 1
+
+
+```r
+gapminder %>% 
+  ggplot(aes(year, lifeExp, colour = continent)) +
+  geom_smooth(method = "lm", se = FALSE) +
+  geom_jitter(width = 0.75, alpha = 0.1)
+```
+
+![](second-in-class-worksheet-1-30_files/figure-html/unnamed-chunk-16-1.png)<!-- -->
 
 __Exercise 3__: Omit the `geom_point()` layer from either of the above two plots (it doesn't matter which). Does the line still show up, even though the data aren't shown? Why or why not?
 
+
+```r
+gapminder %>% 
+  ggplot(aes(year, lifeExp, colour = continent)) +
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+![](second-in-class-worksheet-1-30_files/figure-html/unnamed-chunk-17-1.png)<!-- -->
+
 __Exercise 4__: Make a plot of `year` (x) vs `lifeExp` (y), facetted by continent. Then, fit a smoother through the data for each continent, without the error bars. Choose a span that you feel is appropriate.
+
+
+```r
+ggplot(gapminder, aes(year, lifeExp)) +
+  facet_wrap(~ continent, nrow = 1) +
+  geom_line(aes(group = country), alpha = 0.2) +
+  geom_smooth(se = FALSE) +
+  scale_x_continuous(breaks = seq(1952, 3000, by = 15))
+```
+
+```
+## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
+```
+
+![](second-in-class-worksheet-1-30_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
 
 __Exercise 5__: Plot the population over time (year) using lines, so that each country has its own line. Colour by `gdpPercap`. Add alpha transparency to your liking. 
 
+
+```r
+ggplot(gapminder, aes(year, pop)) +
+  geom_line(aes(group = country, colour = gdpPercap), alpha = 0.1) +
+  scale_y_log10() +
+  scale_colour_continuous(trans = "log", breaks = 10^(1:100), 
+                          labels = scales::comma_format())
+```
+
+![](second-in-class-worksheet-1-30_files/figure-html/unnamed-chunk-19-1.png)<!-- -->
+
 __Exercise 6__: Add points to the plot in Exercise 5.
+
+
+```r
+ggplot(gapminder, aes(year, pop)) +
+  geom_point(alpha = 0.1, size = 0.1) +
+  geom_line(aes(group = country, colour = gdpPercap), alpha = 0.1) +
+  scale_y_log10() +
+  scale_colour_continuous(trans = "log", breaks = 10^(1:100), 
+                          labels = scales::comma_format())
+```
+
+![](second-in-class-worksheet-1-30_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
