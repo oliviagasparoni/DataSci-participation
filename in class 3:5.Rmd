@@ -28,5 +28,10 @@ library(gapminder)
 ```{r}
 write_csv(gap_asia_2007, "exported_file.csv")
 ```
+ getwd()
+
+```{r}
+file.path("data", "cats_data.csv") #this is an example of how to write a relative code
+```
 
 
