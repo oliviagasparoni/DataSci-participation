@@ -1,0 +1,32 @@
+---
+title: "in class 3/5"
+author: "Olivia Gasparoni"
+date: "3/5/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo = FALSE}
+install.packages("readr")
+install.packages("readxl")
+install.packages("googlesheets4")
+install.packages("haven")
+install.packages("rio")
+install.packages("here")
+
+library(tidyverse)
+library(gapminder)
+```
+
+```{r}
+(gap_asia_2007 <- gapminder %>% filter(year == 2007, continent == "Asia"))
+```
+
+```{r}
+write_csv(gap_asia_2007, "exported_file.csv")
+```
+
+

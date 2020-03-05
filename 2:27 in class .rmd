@@ -212,7 +212,6 @@ flights %>%
   left_join(weather) %>% 
   left_join(planes, by = "tailnum") %>% 
   left_join(airports, by = c("dst", "faa") %>% 
-    
               
 ```
 
