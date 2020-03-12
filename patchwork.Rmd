@@ -1,0 +1,42 @@
+---
+title: "3/12"
+author: "Olivia Gasparoni"
+date: "3/12/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library("tidyverse")
+install.packages("patchwork")
+install.packages("gridExtra")
+library(patchwork)
+library(gridExtra)
+```
+
+```{r}
+ggplot(airquality, aes(`Month`, `Temp`, group = `Month`)) +
+    geom_boxplot() +
+    geom_jitter(aes(color = "pink")) +
+    labs(
+         title="Maximum temperature by month") +
+    scale_x_continuous(breaks = c(5, 6, 7, 8, 9), 
+                       labels = c("5", "6", "7", "8", "9")) +
+    annotate("text", x = 10, y = 200, label="°F", size = 4) +
+    theme(axis.line = element_line(colour = "yellow"),
+          text = element_text(size=25)
+          )
+```
+
+```{r}
+p_mpg <- ggplot(mtcars, aes(factor(cyl), mpg, color = factor(cyl))) + 
+    geom_boxplot() + theme_bw() + xlab("No. of cylinders") + ylab("MPG")
+
+p_hp <- ggplot(mtcars, aes(factor(cyl), hp, color = factor(cyl))) + 
+    geom_boxplot() + theme_bw() + xlab("No. of cylinders") + ylab("Horsepower")
+
+p_mpg + p_hp # you could divide them to put them on top of each other, etc
+```
+
