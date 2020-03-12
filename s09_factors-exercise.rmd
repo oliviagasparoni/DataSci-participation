@@ -1,0 +1,300 @@
+---
+title: "s09 Exercises: Factors"
+output: 
+  html_document:
+    keep_md: true
+    theme: paper
+---
+
+```{r allow errors, echo = FALSE}
+knitr::opts_chunk$set(error = TRUE)
+```
+
+library(gapminder)
+library(tidyverse)
+
+## Motivating the need for factors in R
+
+### Activity 1: Using factors for plotting 
+
+**1.1** Let's look again into `gapminder` dataset and create a new cloumn, 
+`life_level`, that contains five categories ("very high", "high","moderate", 
+"low", "very low") based on life expectancy in 1997. Assign categories accoring 
+to the table below:
+
+| Criteria | life_level| 
+|-------------|-----------|
+| less than 23 | very low |
+| between 23 and 48 | low |
+| between 48 and 59 | moderate |
+| between 59 and 70 | high |
+| more than 70 | very high |
+
+Function `case_when()` is a tidier way to vectorise multiple `if_else()` statements. 
+You can read more about this function [here](https://dplyr.tidyverse.org/reference/case_when.html).
+
+```{r}
+gapminder %>% 
+  filter(year == 1997) %>% 
+  mutate(life_level = case_when(lifeExp < 23 ~ 'very low', #live_level is the new variable name
+                                lifeExp < 48 ~ 'low', #case to the left of the tilde, result to the right
+                                lifeExp < 59 ~ 'moderate', #it will go through each of the propositions (before the tilde) until it finds one that is true
+                                lifeExp < 70 ~ 'high',
+                                # else
+                                TRUE ~ 'very high')) %>% #anything greater than 70 will show up at "very high." this should always be the last argument in your case_when functions
+  #this will create a "life level" column
+  #can use as many variables as you want. can do two variables in the same line as well. (life expectancy less than 23 AND they're male)
+  ggplot() + 
+  geom_boxplot(aes(x = life_level, y = gdpPercap)) +
+  labs(y = "GDP per capita, $", x = "Life expectancy level, years") +
+  theme_bw() 
+```
+
+Do you notice anything odd/wrong about the graph?
+
+We can make a few observations:
+
+- It seems that none of the countries had a "very low" life-expectancy in 1997. 
+
+- However, since it was an option in our analysis it should be included in our plot. Right?
+
+- Notice also how levels on x-axis are placed in the "wrong" order.
+
+**1.2** You can correct these issues by explicitly setting the levels parameter 
+in the call to `factor()`. Use, `drop = FALSE` to tell the plot not to drop 
+unused levels.
+
+```{r}
+gapminder %>% 
+  filter(year == 1997) %>% 
+  mutate(life_level = factor( #factor allows us to plot the levels in the order that we want rather than alphabetical
+                        case_when(lifeExp < 23 ~ 'very low',
+                                  lifeExp < 48 ~ 'low',
+                                  lifeExp < 59 ~ 'moderate',
+                                  lifeExp < 70 ~ 'high',
+                                  # else
+                                  TRUE ~ 'very high'),
+                        levels = c("very low", "low", "moderate", "high", "very high") #be sure all of the levels are listed in the case_when. this line allows them to be plotted in the order we listed
+                        )
+         ) %>%  
+  ggplot() + 
+  geom_boxplot(aes(x = life_level, y = gdpPercap)) +
+  labs(y = "GDP per capita, $", x = "Life expectancy level, years") +
+  theme_bw() +
+  scale_x_discrete(drop = FALSE) #don't drop any empty factors 
+```
+
+## Activity 2: Inspecting factors
+
+In Activity 1, we created our own factors, so now let's explore what 
+categorical variables that we have in the `gapminder` dataset.
+
+### **2.1** Exploring `gapminder$continent`
+
+Use functions such as `str()`, `levels()`, `nlevels()` and `class()` to 
+answer the following questions:
+
+- What class (type of object) is `continent` (a factor or character)?
+- How many levels? What are they?
+- What integer is used to represent factor "Asia"?
+
+```{r}
+
+1) str(gapminder)
+
+gapminder is a factor with 5 levels. 
+
+2) levels(gapminder$continent) 
+
+the 5 levels are Africa, Americas, Asia, Europe, and Oceania
+
+3) Which integer is Asia: 
+  
+  filter(gapminder, continent == "Asia") %>% 
+  pull(continent) %>% 
+  as.numeric()
+
+Asia = 3
+```
+
+### **2.2** Exploring `gapminder$country`
+
+Let's explore what else we can do with factors. Answer the following questions: 
+
+- How many levels are there in `country`?
+- Filter `gapminder` dataset by 5 countries of your choice. How many levels are 
+  in your filtered dataset?
+
+
+
+```{r}
+nlevels(gapminder$country)
+
+h_countries <- c("Egypt", "Haiti", "Romania", "Thailand", "Venezuela") 
+
+h_gap <- gapminder %>%
+  filter(country %in% h_countries)
+
+nlevels(h_gap$country)
+```
+
+## Dropping unused levels
+
+What if we want to get rid of some levels that are "unused" -- how do we do that? 
+
+The function `droplevels()` operates on all the factors in a data frame or on a 
+single factor. The function `forcats::fct_drop()` operates on a factor and does 
+not drop `NA` values.
+
+```{r}
+h_gap_dropped <- h_gap %>% #drop the levels we didnt use
+  droplevels()
+
+h_gap_dropped$country %>% #displays value of how many levels there are
+  nlevels()
+
+```
+
+## Changing the order of levels
+
+Let's say we wanted to re-order the levels of a factor using a new metric - say, count().
+
+We should first produce a frequency table as a tibble using `dplyr::count()`:
+
+```{r}
+
+gapminder %>% #shows how many countries are in each continent
+  count(continent)
+
+```
+
+The table is nice, but it would be better to visualize the data.
+Factors are most useful/helpful when plotting data.
+So let's first plot this:
+
+```{r}
+gapminder %>%
+  ggplot() +
+  geom_bar(aes(continent)) +
+  coord_flip() + #flips it and puts continent on the y-axis
+  theme_bw() +
+  ylab("Number of entries") + xlab("Continent")
+```
+
+Think about how levels are normally ordered. 
+It turns out that by default, R always sorts levels in alphabetical order. 
+However, it is often preferable to order the levels according to some principle:
+
+  1. Frequency/count (`fct_infreq()`)
+  2. Order of appearance (`fct_inorder()`)
+  3. Sequence of the underlying integers (`fct_inseq()`)
+  
+- Make the most common level the first and so on. Function like `fct_infreq()` 
+  might be useful.
+- The function `fct_rev()` will sort them in the opposite order. (if you did fct_inseq and then fct_rev, it would put it from highest to lowest instead of lowest to highest frquency)
+
+```{r}
+gapminder %>%
+  ggplot() +
+  geom_bar(aes(fct_infreq(continent))) + #this puts them in order of frequency
+  coord_flip() +
+  theme_bw() +
+  ylab("Number of entries") + xlab("Continent")
+```
+
+Section 9.6 of Jenny Bryan's [notes](https://stat545.com/factors-boss.html#reorder-factors) has some helpful examples.
+
+  4. Another variable. 
+  
+  - For example, if we wanted to bring back our example of ordering `gapminder` 
+    countries by life expectancy, we can visualize the results using `fct_reorder()`. 
+
+```{r}
+##  default summarizing function is median()
+gapminder %>%
+  ggplot() +
+  geom_bar(aes(fct_reorder(continent, lifeExp, max))) + #take max life exp for each continent and then arrange in order of max life expectancy. could also use min instead of max
+  coord_flip() +
+  theme_bw() +
+  xlab("Continent") + ylab("Number of entries") 
+```
+
+Use `fct_reorder2()` when you have a line chart of a quantitative x against 
+another quantitative y and your factor provides the color. 
+
+```{r}
+## order by life expectancy 
+ggplot(h_gap, aes(x = year, y = lifeExp,
+                  color = fct_reorder2(country, year, lifeExp))) +
+  geom_line() +
+  labs(color = "Country")
+```
+
+## Change order of the levels manually
+
+This might be useful if you are preparing a report for say, the state of affairs 
+in Africa.
+
+```{r}
+gapminder %>%
+  ggplot() +
+  geom_bar(aes(fct_relevel(continent, "Oceania"))) + #this will put Oceania first and then everything else will go in the order it normally would have gone in 
+  coord_flip() +
+  theme_bw() 
+```
+
+More details on reordering factor levels by hand can be found 
+[here](https://forcats.tidyverse.org/reference/fct_relevel.html).
+
+## Recoding factors
+
+Sometimes you want to specify what the levels of a factor should be.
+For instance, if you had levels called "blk" and "brwn", you would rather they 
+be called "Black" and "Brown" -- this is called recoding.
+
+Lets recode `Oceania` and the `Americas` in the graph above as abbreviations 
+`OCN` and `AME` respectively using the function `fct_recode()`.
+
+```{r}
+gapminder %>%
+  ggplot() +
+  geom_bar(aes(fct_recode(continent, "OCN" = "Oceania", "AME" = "Americas"))) + #this will recode our factors called "oceania" and "americas" as what we would like them to be, ocn and ame. format is new name = old name
+  coord_flip() +
+  theme_bw()
+```
+
+## Grow a factor (OPTIONAL)
+
+Let’s create two data frames,`df1` and `df2` each with data from two countries, 
+dropping unused factor levels.
+
+```{r}
+df1 <- gapminder %>% #make new dataframe with filtered countries on line below
+  filter(country %in% c("United States", "Mexico"), year > 2000) %>%
+  droplevels()
+df2 <- gapminder %>% #make new dataframe with filtered countries on line below
+  filter(country %in% c("France", "Germany"), year > 2000) %>%
+  droplevels()
+
+```
+
+The country factors in `df1` and `df2` have different levels.
+Can you just combine them using `c()`?
+
+```{r}
+c(df1$country, df2$country) #when they have different levels and you try to combine them, it shows as integers and throws out the labels. this is not good!
+```
+
+Use `fct_c()` to perform `c()`, but also combine the levels of the two factor
+variables:
+
+```{r}
+fct_c(df1$country, df2$country) #this will show the names of them. keeps them as factors instead of treating them like numbers. recognizes that they are from two different dataframes, united states and mexico as the first factor, and france and germany as the second factor
+```
+
+Explore how different forms of row binding work behave here, in terms of the 
+country variable in the result. 
+
+```{r}
+bind_rows(df1, df2) #discards the factor and treats them as characters
+```
