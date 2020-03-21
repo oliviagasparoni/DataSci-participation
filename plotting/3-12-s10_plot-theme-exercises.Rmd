@@ -1,4 +1,15 @@
 ---
+title: "3-12-s10_plot-theme-exercises"
+author: "Olivia Gasparoni"
+date: "3/21/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+---
 title: "s10: Plot theming exercises"
 output: 
   html_document:
@@ -9,8 +20,8 @@ output:
 ```{r}
 suppressPackageStartupMessages(library(tidyverse))
 library(gapminder)
-install.packages("ggplotly")
-library(ggplotly)
+install.packages("plotly")
+library(plotly)
 ```
 
 
@@ -192,7 +203,7 @@ ggplotly(p <- gapminder %>%
 ```{r}
 p %>% 
     ggplotly() %>% 
-    htmlwidgets::saveWidget("LOCATION_GOES_HERE")
+    htmlwidgets::saveWidget("plotting")
 ```
 
 
@@ -224,11 +235,8 @@ plot_ly(gapminder,
 plot_ly(gapminder, 
         x = ~gdpPercap, 
         y = ~lifeExp, 
-        z = FILL_THIS_IN,
+        z = ~pop,
         type = "scatter3d",
         mode = "markers",
         opacity = 0.2)
 ```
-
-
-
